@@ -1,6 +1,10 @@
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#FFFFFF" /> <!-- Background color -->
-    <stroke
-        android:width="2dp"
-       android:color="#000000" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape
+            android:shape="rectangle">
+            <stroke
+                android:color="#000000"
+            android:width="1dp" />
+        </shape>
+    </item>
+</layer-list>

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -17,9 +18,7 @@ public class MainActivity extends AppCompatActivity {
     TableLayout tableLayout;
     Button playBtn;
     Button resetBtn;
-    int currentRow;
-    int currentCol;
-    int constantValue = 0;
+    int currentCell = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
         int rowCount = 12;  // Number of rows
         int colCount = 5;   // Number of columns
 
-        currentRow = rowCount - 1;  // Start from the bottom row
-        currentCol = 0;  // Start from the first column
 
         playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -42,36 +39,64 @@ public class MainActivity extends AppCompatActivity {
                 // Generate a random number between 1 and 6
                 Random random = new Random();
                 int randomNumber = random.nextInt(6) + 1;
+                // Update the ImageView based on the random number
+                ImageView diceImg = findViewById(R.id.diceImg);
 
-                // Calculate the new constant value by adding the random number
-                int newConstantValue = constantValue + randomNumber;
+                // Select the appropriate drawable resource for the dice image
+                int drawableResource = 0;
+                switch (randomNumber) {
+                    case 1:
+                        drawableResource = R.drawable.dice1;
+                        break;
+                    case 2:
+                        drawableResource = R.drawable.dice2;
+                        break;
+                    case 3:
+                        drawableResource = R.drawable.dice3;
+                        break;
+                    case 4:
+                        drawableResource = R.drawable.dice4;
+                        break;
+                    case 5:
+                        drawableResource = R.drawable.dice5;
+                        break;
+                    case 6:
+                        drawableResource = R.drawable.dice6;
+                        break;
+                }
+
+                // Set the selected drawable as the source of the ImageView
+                diceImg.setImageResource(drawableResource);
+
+                // Calculate the new currentCell value by adding the random number
+                int newCurrentCellValue = currentCell + randomNumber;
 
                 // Check if the new constant value exceeds 60
-                if (newConstantValue > 60) {
-                    int remainder = newConstantValue % 60;
-                    newConstantValue = 60 - remainder;
+                if (newCurrentCellValue > 60) {
+                    int remainder = newCurrentCellValue % 60;
+                    newCurrentCellValue = 60 - remainder;
                 }
 
                 // Find the TextView with the previous constant value and change its background color to white
-                TextView previousTextView = findViewById(constantValue);
+                TextView previousTextView = findViewById(currentCell);
                 if (previousTextView != null) {
                     previousTextView.setBackgroundColor(getResources().getColor(android.R.color.white));
                 }
 
                 // Update the constant value to the new value
-                constantValue = newConstantValue;
+                currentCell = newCurrentCellValue;
 
                 // Find the TextView with the updated constant value and change its background color to black
-                TextView updatedTextView = findViewById(constantValue);
+                TextView updatedTextView = findViewById(currentCell);
 
                 if (updatedTextView != null) {
                     updatedTextView.setBackgroundColor(getResources().getColor(android.R.color.black));
                 } else {
-                    showToast("TextView with ID " + constantValue + " not found.");
+                    showToast("TextView with ID " + currentCell + " not found.");
                 }
 
                 // Check if the player has won
-                if (constantValue == 60) {
+                if (currentCell == 60) {
                     showToast("You win!");
                     playBtn.setEnabled(false); // Disable the play button
                 }
@@ -82,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 // Reset the constant value to 0
-                constantValue = 0;
+                currentCell = 0;
 
                 // Enable the play button
                 playBtn.setEnabled(true);
@@ -109,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
                         TableRow.LayoutParams.WRAP_CONTENT,
                         1
                 );
+                // Add 10dp margins to the left and right of each TextView
+                cellParams.setMargins(5, 5, 5, 5);
                 textView.setLayoutParams(cellParams);
 
                 if (i % 2 == 1) {
@@ -121,9 +148,9 @@ public class MainActivity extends AppCompatActivity {
 
                 // Generate a unique ID based on the value
                 int textViewId = value;
-
                 textView.setId(textViewId);  // Set the ID of the TextView
                 textView.setTag(value);  // Set the tag as the value
+                textView.setShadowLayer(1.6f, 1.5f, 1.3f, getResources().getColor(android.R.color.black));
                 textView.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -137,8 +164,9 @@ public class MainActivity extends AppCompatActivity {
                     textView.setTextSize(19);
                     textView.setPadding(0, 35, 0, 10);
                 } else if (value == 60) {
-                    textView.setText("END");
-                    textView.setTextSize(30);
+                    textView.setText("FINISH");
+                    textView.setTextSize(19);
+                    textView.setPadding(0, 35, 0, 10);
                 } else {
                     textView.setText(String.valueOf(value));
                     textView.setTextSize(30);
