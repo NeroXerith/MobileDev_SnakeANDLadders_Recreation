@@ -1,6 +1,7 @@
 package com.bryle_sanico.diceactivity;
 
 import androidx.appcompat.app.AppCompatActivity;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -10,7 +11,6 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.media.MediaPlayer;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -38,94 +38,101 @@ public class MainActivity extends AppCompatActivity {
         climbingSound = MediaPlayer.create(this, R.raw.climbing);
         winSound = MediaPlayer.create(this, R.raw.win);
 
+        setupPlayButton();
+        setupResetButton();
+        createTextViews(rowCount, colCount, startValue);
+    }
+
+    private void setupPlayButton() {
         playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Generate a random number between 1 and 6
-                Random random = new Random();
-                int randomNumber = random.nextInt(6) + 1;
-                // Update the ImageView based on the random number
-                ImageView diceImg = findViewById(R.id.diceImg);
+                int randomNumber = rollDice();
+                updateDiceImage(randomNumber);
 
-                // Select the appropriate drawable resource for the dice image
-                int drawableResource = 0;
-                switch (randomNumber) {
-                    case 1:
-                        drawableResource = R.drawable.dice1;
-                        break;
-                    case 2:
-                        drawableResource = R.drawable.dice2;
-                        break;
-                    case 3:
-                        drawableResource = R.drawable.dice3;
-                        break;
-                    case 4:
-                        drawableResource = R.drawable.dice4;
-                        break;
-                    case 5:
-                        drawableResource = R.drawable.dice5;
-                        break;
-                    case 6:
-                        drawableResource = R.drawable.dice6;
-                        break;
-                }
+                int newCurrentCellValue = updateCurrentCellValue(randomNumber);
 
-                // Set the selected drawable as the source of the ImageView
-                diceImg.setImageResource(drawableResource);
-
-                // Calculate the new currentCell value by adding the random number
-                int newCurrentCellValue = currentCell + randomNumber;
-
-                // Check if the new constant value exceeds 60
-                if (newCurrentCellValue > 60) {
-                    int remainder = newCurrentCellValue % 60;
-                    newCurrentCellValue = 60 - remainder;
-                }
-
-                // Find the TextView with the previous constant value and change its background color to white
-                TextView previousTextView = findViewById(currentCell);
-                if (previousTextView != null) {
-                    previousTextView.setBackgroundColor(getResources().getColor(android.R.color.white));
-                }
-
-                // Update the constant value to the new value
+                updatePreviousTextViewColor(currentCell);
                 currentCell = newCurrentCellValue;
+                updateCurrentTextViewColor(currentCell);
 
-                // Find the TextView with the updated constant value and change its background color to black
-                TextView updatedTextView = findViewById(currentCell);
-
-                if (updatedTextView != null) {
-                    updatedTextView.setBackgroundColor(getResources().getColor(android.R.color.black));
-                } else {
-                    showToast("TextView with ID " + currentCell + " not found.");
-                }
-
-                // Check if the player has won
                 if (currentCell == 60) {
                     showToast("You win!");
-                    playBtn.setEnabled(false); // Disable the play button
-                    winSound.start(); // Play the "win_SE" audio
+                    playBtn.setEnabled(false);
+                    playSound(winSound);
                 } else {
-                    climbingSound.start(); // Play the "climbing_SE" audio
+                    playSound(climbingSound);
                 }
             }
         });
+    }
 
+    private int rollDice() {
+        return new Random().nextInt(6) + 1;
+    }
+
+    private void updateDiceImage(int randomNumber) {
+        ImageView diceImg = findViewById(R.id.diceImg);
+        int drawableResource = getResources().getIdentifier("dice" + randomNumber, "drawable", getPackageName());
+        diceImg.setImageResource(drawableResource);
+    }
+
+    private int updateCurrentCellValue(int randomNumber) {
+        int newCurrentCellValue = currentCell + randomNumber;
+        if (newCurrentCellValue > 60) {
+            int remainder = newCurrentCellValue % 60;
+            newCurrentCellValue = 60 - remainder;
+        }
+        return newCurrentCellValue;
+    }
+
+    private void updatePreviousTextViewColor(int cellValue) {
+        TextView previousTextView = findViewById(cellValue);
+        if (previousTextView != null) {
+            previousTextView.setBackgroundColor(getResources().getColor(android.R.color.white));
+        }
+    }
+
+    private void updateCurrentTextViewColor(int cellValue) {
+        TextView updatedTextView = findViewById(cellValue);
+        if (updatedTextView != null) {
+            updatedTextView.setBackgroundColor(getResources().getColor(android.R.color.black));
+        } else {
+            showToast("TextView with ID " + currentCell + " not found.");
+        }
+    }
+
+    private void playSound(MediaPlayer sound) {
+        sound.start();
+    }
+
+    private void setupResetButton() {
         resetBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Reset the constant value to 0
                 currentCell = 0;
-
-                // Enable the play button
                 playBtn.setEnabled(true);
-
-                // Reset the background color of all TextViews
                 clearBackgroundColors();
             }
         });
+    }
 
+    private void clearBackgroundColors() {
+        for (int i = 0; i < tableLayout.getChildCount(); i++) {
+            TableRow tableRow = (TableRow) tableLayout.getChildAt(i);
 
+            for (int j = 0; j < tableRow.getChildCount(); j++) {
+                TextView textView = (TextView) tableRow.getChildAt(j);
+                textView.setBackgroundColor(getResources().getColor(android.R.color.white));
+            }
+        }
+    }
+
+    private void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void createTextViews(int rowCount, int colCount, int startValue) {
         for (int i = 1; i <= rowCount; i++) {
             TableRow row = new TableRow(this);
             TableRow.LayoutParams layoutParams = new TableRow.LayoutParams(
@@ -142,30 +149,18 @@ public class MainActivity extends AppCompatActivity {
                         TableRow.LayoutParams.WRAP_CONTENT,
                         1
                 );
-                // Add 10dp margins to the left and right of each TextView
                 cellParams.setMargins(5, 5, 5, 5);
                 textView.setLayoutParams(cellParams);
 
                 if (i % 2 == 1) {
-                    // Descending sequence
                     value = startValue - ((i - 1) * colCount + j - 1);
                 } else {
-                    // Ascending sequence
                     value = startValue - (i * colCount - j);
                 }
 
-                // Generate a unique ID based on the value
-                int textViewId = value;
-                textView.setId(textViewId);  // Set the ID of the TextView
-                textView.setTag(value);  // Set the tag as the value
+                textView.setId(value);
+                textView.setTag(value);
                 textView.setShadowLayer(1.6f, 1.5f, 1.3f, getResources().getColor(android.R.color.black));
-                textView.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        int cellValue = (int) view.getTag();  // Get the value from the tag
-                        // Handle clicks on TextView with value = cellValue
-                    }
-                });
 
                 if (value == 1) {
                     textView.setText("START");
@@ -181,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 textView.setBackgroundColor(getResources().getColor(android.R.color.white));
-
                 textView.setGravity(android.view.Gravity.CENTER);
                 row.addView(textView);
             }
@@ -193,23 +187,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    // Clear background colors for all TextViews
-    private void clearBackgroundColors() {
-        for (int i = 0; i < tableLayout.getChildCount(); i++) {
-            TableRow tableRow = (TableRow) tableLayout.getChildAt(i);
-
-            for (int j = 0; j < tableRow.getChildCount(); j++) {
-                TextView textView = (TextView) tableRow.getChildAt(j);
-                textView.setBackgroundColor(getResources().getColor(android.R.color.white));
-            }
-        }
-    }
-
-    // Function to display a toast message
-    private void showToast(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-    }
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -221,7 +198,3 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 }
-
-
-
-
