@@ -10,7 +10,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.media.MediaPlayer;
 import java.util.Random;
 
 public class MainActivity extends AppCompatActivity {
@@ -19,6 +19,8 @@ public class MainActivity extends AppCompatActivity {
     Button playBtn;
     Button resetBtn;
     int currentCell = 0;
+    MediaPlayer climbingSound;
+    MediaPlayer winSound;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
         int rowCount = 12;  // Number of rows
         int colCount = 5;   // Number of columns
 
+        // Initialize MediaPlayer objects for audio
+        climbingSound = MediaPlayer.create(this, R.raw.climbing);
+        winSound = MediaPlayer.create(this, R.raw.win);
 
         playBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -99,6 +104,9 @@ public class MainActivity extends AppCompatActivity {
                 if (currentCell == 60) {
                     showToast("You win!");
                     playBtn.setEnabled(false); // Disable the play button
+                    winSound.start(); // Play the "win_SE" audio
+                } else {
+                    climbingSound.start(); // Play the "climbing_SE" audio
                 }
             }
         });
@@ -202,4 +210,18 @@ public class MainActivity extends AppCompatActivity {
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (climbingSound != null) {
+            climbingSound.release();
+        }
+        if (winSound != null) {
+            winSound.release();
+        }
+    }
 }
+
+
+
+
